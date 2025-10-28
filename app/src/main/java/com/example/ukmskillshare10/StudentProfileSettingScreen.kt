@@ -34,18 +34,19 @@ import com.example.ukmskillshare10.data.StudentProfile
 @Composable
 fun StudentProfileSettingScreen(
     onBackClick: () -> Unit,
+    onSaved: () -> Unit = {},
     context: android.content.Context
 ) {
     // Using static data instead of database
     val defaultProfile = remember {
         StudentProfile(
-            name = "Armin Rafiqin",
-            studentId = "A201010",
-            email = "arminrafiqin@gmail.com",
-            phoneNumber = "+60 11-63130800",
-            course = "Bachelor of Software Engineering (Multimedia)",
-            faculty = "Faculty of Information Science & Technology",
-            yearOfStudy = "Year 2",
+            name = "",
+            studentId = "",
+            email = "",
+            phoneNumber = "",
+            course = "",
+            faculty = "",
+            yearOfStudy = "",
             notificationsEnabled = true,
             language = "English",
             theme = "Light"
@@ -58,260 +59,273 @@ fun StudentProfileSettingScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(rememberScrollState())
     ) {
-        // Header with Back button
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClick) {
-                Text(
-                    text = "✕",
-                    fontSize = 24.sp,
-                    color = Color.Black
-                )
-            }
-            Text(
-                text = "Student Profile",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF445BA5),
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Profile Picture Section
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.personal),
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-
-            FloatingActionButton(
-                onClick = { /* TODO: Open image picker */ },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(4.dp),
-                containerColor = Color.White,
-                contentColor = Color.Black
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.camera),
-                    contentDescription = "Edit Profile Picture",
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-
         Column(
-            modifier = Modifier.padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = studentProfile.name,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF445BA5)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = studentProfile.course,
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Personal Information Section
-        ProfileSection(
-            title = "Personal Information",
-            icon = painterResource(id = R.drawable.personal)
-        ) {
-            EditableTextField(
-                label = "Name",
-                value = studentProfile.name,
-                editable = true,
-                onValueChange = {
-                    studentProfile = studentProfile.copy(name = it)
-                }
-            )
-
-            EditableTextField(
-                label = "Student ID",
-                value = studentProfile.studentId,
-                editable = false,
-                onValueChange = {}
-            )
-
-            EditableTextField(
-                label = "Email",
-                value = studentProfile.email,
-                editable = false,
-                onValueChange = {}
-            )
-
-            EditableTextField(
-                label = "Phone Number",
-                value = studentProfile.phoneNumber,
-                editable = true,
-                keyboardType = TextKeyboardType.Phone,
-                onValueChange = {
-                    studentProfile = studentProfile.copy(phoneNumber = it)
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Academic Information Section
-        ProfileSection(
-            title = "Academic Information",
-            icon = painterResource(id = R.drawable.education)
-        ) {
-            DropdownField(
-                label = "Course",
-                value = studentProfile.course,
-                options = listOf(
-                    "Bachelor of Software Engineering (Multimedia)",
-                    "Bachelor of Computer Science",
-                    "Bachelor of Information Technology"
-                ),
-                onValueChange = {
-                    studentProfile = studentProfile.copy(course = it)
-                }
-            )
-
-            DropdownField(
-                label = "Faculty",
-                value = studentProfile.faculty,
-                options = listOf(
-                    "Faculty of Information Science & Technology",
-                    "Faculty of Engineering & Built Environment",
-                    "Faculty of Economics & Business"
-                ),
-                onValueChange = {
-                    studentProfile = studentProfile.copy(faculty = it)
-                }
-            )
-
-            DropdownField(
-                label = "Year of Study",
-                value = studentProfile.yearOfStudy,
-                options = listOf("Year 1", "Year 2", "Year 3", "Year 4"),
-                onValueChange = {
-                    studentProfile = studentProfile.copy(yearOfStudy = it)
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Preferences Section
-        ProfileSection(
-            title = "Preferences",
-            icon = painterResource(id = R.drawable.setting)
-        ) {
-            SwitchField(
-                label = "Notification",
-                description = "Receive alerts and updates",
-                checked = studentProfile.notificationsEnabled,
-                onCheckedChange = {
-                    studentProfile = studentProfile.copy(notificationsEnabled = it)
-                }
-            )
-
-            DropdownField(
-                label = "Language",
-                value = studentProfile.language,
-                options = listOf("English", "Malay", "Chinese"),
-                onValueChange = {
-                    studentProfile = studentProfile.copy(language = it)
-                }
-            )
-
-            RadioGroupField(
-                label = "Theme",
-                options = listOf("Light", "Dark", "System"),
-                selectedOption = studentProfile.theme,
-                onOptionSelected = {
-                    studentProfile = studentProfile.copy(theme = it)
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Security & Support Section
-        ProfileSection(
-            title = "Security & Support",
-            icon = painterResource(id = R.drawable.security)
-        ) {
-            ActionButton(
-                text = "Change Password",
-                onClick = { showPasswordDialog = true },
-                icon = painterResource(id = R.drawable.lock)
-            )
-
-            ActionButton(
-                text = "Contact Help",
-                onClick = { showContactHelpDialog = true }
-            )
-
-            ActionButton(
-                text = "Delete Account",
-                onClick = { showDeleteDialog = true },
-                isDestructive = true
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Save Changes Button
-            Button(
-                onClick = {
-                    // Simply show success dialog (no database save)
-                    showSuccessDialog = true
-                },
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Black
-            ),
-            shape = RoundedCornerShape(12.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = "Save Changes",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.White
-            )
+            // Header with Back button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBackClick) {
+                    Text(
+                        text = "✕",
+                        fontSize = 24.sp,
+                        color = Color.Black
+                    )
+                }
+                Text(
+                    text = "Student Profile",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF445BA5),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Profile Picture Section
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.personal),
+                    contentDescription = "Profile Picture",
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+
+                FloatingActionButton(
+                    onClick = { /* TODO: Open image picker */ },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(4.dp),
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.camera),
+                        contentDescription = "Edit Profile Picture",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier.padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if (studentProfile.name.isNotEmpty()) studentProfile.name else "Student Name",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (studentProfile.name.isNotEmpty()) Color(0xFF445BA5) else Color.Gray
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = if (studentProfile.course.isNotEmpty()) studentProfile.course else "Select Course",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Personal Information Section
+            ProfileSection(
+                title = "Personal Information",
+                icon = painterResource(id = R.drawable.personal)
+            ) {
+                EditableTextField(
+                    label = "Name",
+                    value = studentProfile.name,
+                    editable = true,
+                    onValueChange = {
+                        studentProfile = studentProfile.copy(name = it)
+                    }
+                )
+
+                EditableTextField(
+                    label = "Student ID",
+                    value = studentProfile.studentId,
+                    editable = true,
+                    keyboardType = TextKeyboardType.Text,
+                    onValueChange = {
+                        studentProfile = studentProfile.copy(studentId = it)
+                    }
+                )
+
+                EditableTextField(
+                    label = "Email",
+                    value = studentProfile.email,
+                    editable = true,
+                    keyboardType = TextKeyboardType.Email,
+                    onValueChange = {
+                        studentProfile = studentProfile.copy(email = it)
+                    }
+                )
+
+                EditableTextField(
+                    label = "Phone Number",
+                    value = studentProfile.phoneNumber,
+                    editable = true,
+                    keyboardType = TextKeyboardType.Phone,
+                    onValueChange = {
+                        studentProfile = studentProfile.copy(phoneNumber = it)
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Academic Information Section
+            ProfileSection(
+                title = "Academic Information",
+                icon = painterResource(id = R.drawable.education)
+            ) {
+                DropdownField(
+                    label = "Course",
+                    value = studentProfile.course,
+                    options = listOf(
+                        "Bachelor of Software Engineering (Multimedia)",
+                        "Bachelor of Computer Science",
+                        "Bachelor of Information Technology"
+                    ),
+                    onValueChange = {
+                        studentProfile = studentProfile.copy(course = it)
+                    }
+                )
+
+                DropdownField(
+                    label = "Faculty",
+                    value = studentProfile.faculty,
+                    options = listOf(
+                        "Faculty of Information Science & Technology",
+                        "Faculty of Engineering & Built Environment",
+                        "Faculty of Economics & Business"
+                    ),
+                    onValueChange = {
+                        studentProfile = studentProfile.copy(faculty = it)
+                    }
+                )
+
+                DropdownField(
+                    label = "Year of Study",
+                    value = studentProfile.yearOfStudy,
+                    options = listOf("Year 1", "Year 2", "Year 3", "Year 4"),
+                    onValueChange = {
+                        studentProfile = studentProfile.copy(yearOfStudy = it)
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Preferences Section
+            ProfileSection(
+                title = "Preferences",
+                icon = painterResource(id = R.drawable.setting)
+            ) {
+                SwitchField(
+                    label = "Notification",
+                    description = "Receive alerts and updates",
+                    checked = studentProfile.notificationsEnabled,
+                    onCheckedChange = {
+                        studentProfile = studentProfile.copy(notificationsEnabled = it)
+                    }
+                )
+
+                DropdownField(
+                    label = "Language",
+                    value = studentProfile.language,
+                    options = listOf("English", "Malay", "Chinese"),
+                    onValueChange = {
+                        studentProfile = studentProfile.copy(language = it)
+                    }
+                )
+
+                RadioGroupField(
+                    label = "Theme",
+                    options = listOf("Light", "Dark", "System"),
+                    selectedOption = studentProfile.theme,
+                    onOptionSelected = {
+                        studentProfile = studentProfile.copy(theme = it)
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Security & Support Section
+            ProfileSection(
+                title = "Security & Support",
+                icon = painterResource(id = R.drawable.security)
+            ) {
+                ActionButton(
+                    text = "Change Password",
+                    onClick = { showPasswordDialog = true },
+                    icon = painterResource(id = R.drawable.lock)
+                )
+
+                ActionButton(
+                    text = "Contact Help",
+                    onClick = { showContactHelpDialog = true }
+                )
+
+                ActionButton(
+                    text = "Delete Account",
+                    onClick = { showDeleteDialog = true },
+                    isDestructive = true
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Save Changes Button
+                Button(
+                    onClick = {
+                        // Simply show success dialog (no database save)
+                        showSuccessDialog = true
+                        // Navigate to dashboard after short confirmation
+                        onSaved()
+                    },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = "Save Changes",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Bottom Navigation
+            BottomNavigationBar()
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Bottom Navigation
-        BottomNavigationBar()
     }
 
     // Dialogs
@@ -389,6 +403,7 @@ fun EditableTextField(
             }
         },
         label = { Text(label) },
+        placeholder = { Text("Enter $label") },
         enabled = editable,
         readOnly = !editable,
         keyboardOptions = KeyboardOptions(
@@ -427,6 +442,7 @@ fun DropdownField(
             value = value,
             onValueChange = {},
             label = { Text(label) },
+            placeholder = { Text("Select $label") },
             trailingIcon = {
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,

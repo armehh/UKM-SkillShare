@@ -44,24 +44,41 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppContent() {
-    var currentScreen by remember { mutableStateOf("welcome") }
+    var currentScreen by remember { mutableStateOf("login") }
     var showLearnMoreDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     when (currentScreen) {
+        "login" -> LoginScreen(
+            onLoginClick = { currentScreen = "welcome" },
+            onSignupClick = { }
+        )
         "welcome" -> WelcomeScreen(
             onGetStartedClick = { currentScreen = "role_selection" }
         )
         "role_selection" -> RoleSelectionScreen(
             onBackClick = { currentScreen = "welcome" },
             onStudentClick = { currentScreen = "student_profile" },
-            onTutorClick = { /* TODO: Navigate to tutor dashboard */ },
+            onTutorClick = { currentScreen = "tutor_profile" },
             onLearnMoreClick = { showLearnMoreDialog = true }
         )
         "student_profile" -> StudentProfileSettingScreen(
             onBackClick = { currentScreen = "role_selection" },
+            onSaved = { currentScreen = "dashboard" },
             context = context
         )
+        "dashboard" -> DashboardScreen(
+            onBrowseClick = { /* stub */ },
+            onBookingsClick = { /* stub */ },
+            onFeedbackClick = { /* stub */ },
+            onHistoryClick = { /* stub */ }
+        )
+        "tutor_profile" -> TutorProfileSettingScreen(
+            onBackClick = { currentScreen = "role_selection" },
+            onSaved = { currentScreen = "tutor_dashboard" },
+            context = context
+        )
+        "tutor_dashboard" -> TutorDashboardScreen()
     }
 
     if (showLearnMoreDialog) {
