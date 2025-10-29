@@ -65,11 +65,17 @@ fun AppContent() {
             onSaved = { currentScreen = "dashboard" },
             context = context
         )
-        "dashboard" -> DashboardScreen(
-            onBrowseClick = { /* stub */ },
-            onBookingsClick = { /* stub */ },
-            onFeedbackClick = { /* stub */ },
-            onHistoryClick = { /* stub */ }
+        "dashboard" -> MainScreenWithNavigation(
+            currentScreen = "home",
+            onNavigate = { screen -> 
+                when (screen) {
+                    "home" -> currentScreen = "dashboard"
+                    "profile" -> currentScreen = "student_profile"
+                    "role_selection" -> currentScreen = "role_selection"
+                    else -> currentScreen = "dashboard" // Default to dashboard for browse/sessions
+                }
+            },
+            context = context
         )
         "tutor_profile" -> TutorProfileSettingScreen(
             onBackClick = { currentScreen = "role_selection" },
@@ -345,6 +351,100 @@ fun LearnMoreDialog(onDismiss: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MainScreenWithNavigation(
+    currentScreen: String,
+    onNavigate: (String) -> Unit,
+    context: android.content.Context
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Main content area
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 80.dp) // Space for bottom navigation
+        ) {
+            when (currentScreen) {
+                "home" -> DashboardScreen(
+                    onBrowseClick = { onNavigate("browse") },
+                    onBookingsClick = { onNavigate("sessions") },
+                    onFeedbackClick = { /* TODO: Implement feedback */ },
+                    onHistoryClick = { /* TODO: Implement history */ }
+                )
+                "browse" -> BrowseScreen()
+                "sessions" -> SessionsScreen()
+                "profile" -> StudentProfileSettingScreen(
+                    onBackClick = { onNavigate("role_selection") },
+                    onSaved = { onNavigate("home") },
+                    context = context
+                )
+            }
+        }
+        
+        // Bottom Navigation Bar positioned at bottom
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+        ) {
+            BottomNavigationBar(
+                currentScreen = currentScreen,
+                onNavigate = onNavigate
+            )
+        }
+    }
+}
+
+@Composable
+fun BrowseScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Browse Skills",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF445BA5)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Discover available skills and tutors",
+            fontSize = 16.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun SessionsScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Sessions",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF445BA5)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Manage your learning sessions",
+            fontSize = 16.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

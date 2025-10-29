@@ -268,6 +268,20 @@ fun StudentProfileSettingScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Role Management Section
+            ProfileSection(
+                title = "Role Management",
+                icon = painterResource(id = R.drawable.manage_profile)
+            ) {
+                ActionButton(
+                    text = "Switch Role",
+                    onClick = { onBackClick() }, // Navigate back to role selection
+                    icon = painterResource(id = R.drawable.setting)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Security & Support Section
             ProfileSection(
                 title = "Security & Support",
@@ -319,9 +333,6 @@ fun StudentProfileSettingScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Bottom Navigation
-            BottomNavigationBar()
         }
     }
 
@@ -816,43 +827,4 @@ fun SuccessDialog(onDismiss: () -> Unit) {
     }
 }
 
-@Composable
-fun BottomNavigationBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        NavItem(icon = painterResource(id = R.drawable.home), label = "Home")
-        NavItem(icon = painterResource(id = R.drawable.browse), label = "Browse")
-        NavItem(icon = painterResource(id = R.drawable.sessions), label = "Sessions")
-        NavItem(icon = painterResource(id = R.drawable.profile), label = "Profile", isSelected = true)
-    }
-}
-
-@Composable
-fun NavItem(
-    icon: androidx.compose.ui.graphics.painter.Painter,
-    label: String,
-    isSelected: Boolean = false
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            painter = icon,
-            contentDescription = label,
-            tint = if (isSelected) Color(0xFF445BA5) else Color.Gray,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = if (isSelected) Color(0xFF445BA5) else Color.Gray
-        )
-    }
-}
 

@@ -30,11 +30,11 @@ fun TutorProfileSettingScreen(
     onSaved: () -> Unit,
     context: android.content.Context
 ) {
-    var fullName by remember { mutableStateOf("Michael Johnson") }
-    var phone by remember { mutableStateOf("+60 12-345-6789") }
+    var fullName by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var newSkill by remember { mutableStateOf("") }
-    var skills by remember { mutableStateOf(listOf("Mathematics", "Physics", "Algebra")) }
-    var price by remember { mutableStateOf("50") }
+    var skills by remember { mutableStateOf(listOf<String>()) }
+    var price by remember { mutableStateOf("") }
     var allowNegotiable by remember { mutableStateOf(true) }
 
     // availability simple toggles (dummy)
@@ -42,11 +42,11 @@ fun TutorProfileSettingScreen(
     var availability by remember {
         mutableStateOf(
             listOf(
-                DayAvail(true, "9:00 AM - 5:00 PM"),
-                DayAvail(true, "9:00 AM - 5:00 PM"),
                 DayAvail(false, "Not Available"),
-                DayAvail(true, "1:00 PM - 6:00 PM"),
-                DayAvail(true, "9:00 AM - 3:00 PM"),
+                DayAvail(false, "Not Available"),
+                DayAvail(false, "Not Available"),
+                DayAvail(false, "Not Available"),
+                DayAvail(false, "Not Available"),
                 DayAvail(false, "Not Available"),
                 DayAvail(false, "Not Available")
             )
@@ -89,8 +89,17 @@ fun TutorProfileSettingScreen(
         Spacer(Modifier.height(8.dp))
 
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-            Text(fullName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF445BA5))
-            Text("Mathematics & Physics Tutor", fontSize = 14.sp, color = Color.Gray)
+            Text(
+                text = if (fullName.isNotEmpty()) fullName else "Tutor Name",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (fullName.isNotEmpty()) Color(0xFF445BA5) else Color.Gray
+            )
+            Text(
+                text = if (skills.isNotEmpty()) skills.joinToString(" & ") + " Tutor" else "Select Skills",
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
         }
 
         Spacer(Modifier.height(16.dp))
@@ -105,7 +114,7 @@ fun TutorProfileSettingScreen(
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
-                value = "michael.johnson@ukm.edu",
+                value = "",
                 onValueChange = {},
                 label = { Text("Email (readonly)") },
                 enabled = false,
@@ -181,6 +190,11 @@ fun TutorProfileSettingScreen(
                 Checkbox(checked = allowNegotiable, onCheckedChange = { allowNegotiable = it })
                 Text("Allow negotiable rates")
             }
+        }
+
+        // Role Management
+        SectionCard(title = "Role Management", iconRes = R.drawable.manage_profile) {
+            TextButton(onClick = { onBackClick() }) { Text("Switch Role") }
         }
 
         // Security & Support
