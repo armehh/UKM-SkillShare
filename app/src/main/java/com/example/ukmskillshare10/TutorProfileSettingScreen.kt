@@ -30,12 +30,15 @@ fun TutorProfileSettingScreen(
     onSaved: () -> Unit,
     context: android.content.Context
 ) {
-    var fullName by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var newSkill by remember { mutableStateOf("") }
+    // Local state management without database
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
     var skills by remember { mutableStateOf(listOf<String>()) }
-    var price by remember { mutableStateOf("") }
+    var pricePerHour by remember { mutableStateOf("") }
     var allowNegotiable by remember { mutableStateOf(true) }
+    
+    var newSkill by remember { mutableStateOf("") }
 
     // availability simple toggles (dummy)
     data class DayAvail(var enabled: Boolean, var slot: String)
@@ -90,10 +93,10 @@ fun TutorProfileSettingScreen(
 
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Text(
-                text = if (fullName.isNotEmpty()) fullName else "Tutor Name",
+                text = if (name.isNotEmpty()) name else "Tutor Name",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (fullName.isNotEmpty()) Color(0xFF445BA5) else Color.Gray
+                color = if (name.isNotEmpty()) Color(0xFF445BA5) else Color.Gray
             )
             Text(
                 text = if (skills.isNotEmpty()) skills.joinToString(" & ") + " Tutor" else "Select Skills",
@@ -107,23 +110,22 @@ fun TutorProfileSettingScreen(
         // Personal Info
         SectionCard(title = "Personal Info", iconRes = R.drawable.manage_profile) {
             OutlinedTextField(
-                value = fullName,
-                onValueChange = { fullName = it },
+                value = name,
+                onValueChange = { name = it },
                 label = { Text("Full Name") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                label = { Text("Email (readonly)") },
-                enabled = false,
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
                 label = { Text("Phone Number") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
@@ -133,7 +135,15 @@ fun TutorProfileSettingScreen(
         // Skills
         SectionCard(title = "Skills", iconRes = R.drawable.skills) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                skills.forEach { s -> Chip(text = s) }
+                skills.forEach { s -> 
+                    AssistChip(
+                        onClick = {
+                            // Remove skill
+                            skills = skills.filter { it != s }
+                        },
+                        label = { Text(s) }
+                    )
+                }
             }
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -180,14 +190,22 @@ fun TutorProfileSettingScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("RM", modifier = Modifier.padding(end = 8.dp))
                 OutlinedTextField(
-                    value = price,
-                    onValueChange = { price = it.filter { ch -> ch.isDigit() } },
+                    value = pricePerHour,
+                    onValueChange = { 
+                        val filteredValue = it.filter { ch -> ch.isDigit() }
+                        pricePerHour = filteredValue
+                    },
                     modifier = Modifier.width(120.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = allowNegotiable, onCheckedChange = { allowNegotiable = it })
+                Checkbox(
+                    checked = allowNegotiable, 
+                    onCheckedChange = { 
+                        allowNegotiable = it
+                    }
+                )
                 Text("Allow negotiable rates")
             }
         }
@@ -207,14 +225,19 @@ fun TutorProfileSettingScreen(
         Spacer(Modifier.height(16.dp))
 
         Button(
-            onClick = { onSaved() },
+            onClick = { 
+                // Simple save without database
+                onSaved()
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
             shape = RoundedCornerShape(12.dp)
-        ) { Text("Save Changes", color = Color.White) }
+        ) { 
+            Text("Save Changes", color = Color.White)
+        }
 
         Spacer(Modifier.height(24.dp))
     }

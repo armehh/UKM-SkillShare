@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.ukmskillshare10.data.StudentProfile
 
 @Composable
 fun StudentProfileSettingScreen(
@@ -34,23 +33,18 @@ fun StudentProfileSettingScreen(
     onSaved: () -> Unit = {},
     context: android.content.Context
 ) {
-    // Using static data instead of database
-    val defaultProfile = remember {
-        StudentProfile(
-            name = "",
-            studentId = "",
-            email = "",
-            phoneNumber = "",
-            course = "",
-            faculty = "",
-            yearOfStudy = "",
-            notificationsEnabled = true,
-            language = "English",
-            theme = "Light"
-        )
-    }
-
-    var studentProfile by remember { mutableStateOf(defaultProfile) }
+    // Local state management without database
+    var name by remember { mutableStateOf("") }
+    var studentId by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var course by remember { mutableStateOf("") }
+    var faculty by remember { mutableStateOf("") }
+    var yearOfStudy by remember { mutableStateOf("") }
+    var notificationsEnabled by remember { mutableStateOf(false) }
+    var language by remember { mutableStateOf("English") }
+    var theme by remember { mutableStateOf("Light") }
+    
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showContactHelpDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -128,14 +122,14 @@ fun StudentProfileSettingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (studentProfile.name.isNotEmpty()) studentProfile.name else "Student Name",
+                    text = if (name.isNotEmpty()) name else "Student Name",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (studentProfile.name.isNotEmpty()) Color(0xFF445BA5) else Color.Gray
+                    color = if (name.isNotEmpty()) Color(0xFF445BA5) else Color.Gray
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = if (studentProfile.course.isNotEmpty()) studentProfile.course else "Select Course",
+                    text = if (course.isNotEmpty()) course else "Select Course",
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
@@ -150,41 +144,33 @@ fun StudentProfileSettingScreen(
             ) {
                 EditableTextField(
                     label = "Name",
-                    value = studentProfile.name,
+                    value = name,
                     editable = true,
-                    onValueChange = {
-                        studentProfile = studentProfile.copy(name = it)
-                    }
+                    onValueChange = { name = it }
                 )
 
                 EditableTextField(
                     label = "Student ID",
-                    value = studentProfile.studentId,
+                    value = studentId,
                     editable = true,
                     keyboardType = TextKeyboardType.Text,
-                    onValueChange = {
-                        studentProfile = studentProfile.copy(studentId = it)
-                    }
+                    onValueChange = { studentId = it }
                 )
 
                 EditableTextField(
                     label = "Email",
-                    value = studentProfile.email,
+                    value = email,
                     editable = true,
                     keyboardType = TextKeyboardType.Email,
-                    onValueChange = {
-                        studentProfile = studentProfile.copy(email = it)
-                    }
+                    onValueChange = { email = it }
                 )
 
                 EditableTextField(
                     label = "Phone Number",
-                    value = studentProfile.phoneNumber,
+                    value = phoneNumber,
                     editable = true,
                     keyboardType = TextKeyboardType.Phone,
-                    onValueChange = {
-                        studentProfile = studentProfile.copy(phoneNumber = it)
-                    }
+                    onValueChange = { phoneNumber = it }
                 )
             }
 
@@ -197,37 +183,31 @@ fun StudentProfileSettingScreen(
             ) {
                 DropdownField(
                     label = "Course",
-                    value = studentProfile.course,
+                    value = course,
                     options = listOf(
                         "Bachelor of Software Engineering (Multimedia)",
                         "Bachelor of Computer Science",
                         "Bachelor of Information Technology"
                     ),
-                    onValueChange = {
-                        studentProfile = studentProfile.copy(course = it)
-                    }
+                    onValueChange = { course = it }
                 )
 
                 DropdownField(
                     label = "Faculty",
-                    value = studentProfile.faculty,
+                    value = faculty,
                     options = listOf(
                         "Faculty of Information Science & Technology",
                         "Faculty of Engineering & Built Environment",
                         "Faculty of Economics & Business"
                     ),
-                    onValueChange = {
-                        studentProfile = studentProfile.copy(faculty = it)
-                    }
+                    onValueChange = { faculty = it }
                 )
 
                 DropdownField(
                     label = "Year of Study",
-                    value = studentProfile.yearOfStudy,
+                    value = yearOfStudy,
                     options = listOf("Year 1", "Year 2", "Year 3", "Year 4"),
-                    onValueChange = {
-                        studentProfile = studentProfile.copy(yearOfStudy = it)
-                    }
+                    onValueChange = { yearOfStudy = it }
                 )
             }
 
@@ -241,28 +221,22 @@ fun StudentProfileSettingScreen(
                 SwitchField(
                     label = "Notification",
                     description = "Receive alerts and updates",
-                    checked = studentProfile.notificationsEnabled,
-                    onCheckedChange = {
-                        studentProfile = studentProfile.copy(notificationsEnabled = it)
-                    }
+                    checked = notificationsEnabled,
+                    onCheckedChange = { notificationsEnabled = it }
                 )
 
                 DropdownField(
                     label = "Language",
-                    value = studentProfile.language,
+                    value = language,
                     options = listOf("English", "Malay", "Chinese"),
-                    onValueChange = {
-                        studentProfile = studentProfile.copy(language = it)
-                    }
+                    onValueChange = { language = it }
                 )
 
                 RadioGroupField(
                     label = "Theme",
                     options = listOf("Light", "Dark", "System"),
-                    selectedOption = studentProfile.theme,
-                    onOptionSelected = {
-                        studentProfile = studentProfile.copy(theme = it)
-                    }
+                    selectedOption = theme,
+                    onOptionSelected = { theme = it }
                 )
             }
 
@@ -308,13 +282,13 @@ fun StudentProfileSettingScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Save Changes Button
-                Button(
-                    onClick = {
-                        // Simply show success dialog (no database save)
-                        showSuccessDialog = true
-                        // Navigate to dashboard after short confirmation
-                        onSaved()
-                    },
+            Button(
+                onClick = {
+                    // Simple save without database
+                    showSuccessDialog = true
+                    // Navigate to dashboard after short confirmation
+                    onSaved()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)

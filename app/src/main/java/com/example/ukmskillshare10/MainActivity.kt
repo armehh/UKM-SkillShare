@@ -27,16 +27,44 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.ukmskillshare10.ui.theme.UKMSkillShare10Theme
 import androidx.compose.ui.platform.LocalContext
+import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        FirebaseApp.initializeApp(this)
+        
         setContent {
             UKMSkillShare10Theme {
                 AppContent()
             }
         }
+    }
+}
+
+@Composable
+fun ErrorScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "App Error",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Red
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Something went wrong. Please check the logs for details.",
+            fontSize = 16.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
