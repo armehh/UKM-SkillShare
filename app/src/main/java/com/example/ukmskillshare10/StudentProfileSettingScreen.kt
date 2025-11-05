@@ -234,14 +234,11 @@ fun StudentProfileSettingScreen(
                 title = "Academic Information",
                 icon = painterResource(id = R.drawable.education)
             ) {
-                DropdownField(
+                EditableTextField(
                     label = "Course",
                     value = course,
-                    options = listOf(
-                        "Bachelor of Software Engineering (Multimedia)",
-                        "Bachelor of Computer Science",
-                        "Bachelor of Information Technology"
-                    ),
+                    editable = true,
+                    keyboardType = TextKeyboardType.Text,
                     onValueChange = { course = it }
                 )
 
@@ -249,9 +246,19 @@ fun StudentProfileSettingScreen(
                     label = "Faculty",
                     value = faculty,
                     options = listOf(
-                        "Faculty of Information Science & Technology",
-                        "Faculty of Engineering & Built Environment",
-                        "Faculty of Economics & Business"
+                        "FTSM",
+                        "FEP",
+                        "FUU",
+                        "FKAB",
+                        "FST",
+                        "FPEND",
+                        "FSSK",
+                        "CITRA",
+                        "FPI",
+                        "FSK",
+                        "FPER",
+                        "FGG",
+                        "FFAR"
                     ),
                     onValueChange = { faculty = it }
                 )
@@ -259,7 +266,7 @@ fun StudentProfileSettingScreen(
                 DropdownField(
                     label = "Year of Study",
                     value = yearOfStudy,
-                    options = listOf("Year 1", "Year 2", "Year 3", "Year 4"),
+                    options = listOf("Year 1", "Year 2", "Year 3", "Year 4", "Year 5"),
                     onValueChange = { yearOfStudy = it }
                 )
             }

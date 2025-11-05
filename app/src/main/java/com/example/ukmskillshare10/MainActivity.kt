@@ -114,7 +114,18 @@ fun AppContent() {
             onSaved = { currentScreen = "tutor_dashboard" },
             context = context
         )
-        "tutor_dashboard" -> TutorDashboardScreen()
+        "tutor_dashboard" -> TutorMainScreenWithNavigation(
+            currentScreen = "home",
+            onNavigate = { screen -> 
+                when (screen) {
+                    "home" -> currentScreen = "tutor_dashboard"
+                    "profile" -> currentScreen = "tutor_profile"
+                    "role_selection" -> currentScreen = "role_selection"
+                    else -> currentScreen = "tutor_dashboard" // Default to tutor dashboard for browse/sessions
+                }
+            },
+            context = context
+        )
     }
 
     if (showLearnMoreDialog) {
@@ -409,6 +420,45 @@ fun MainScreenWithNavigation(
                 "browse" -> BrowseScreen()
                 "sessions" -> SessionsScreen()
                 "profile" -> StudentProfileSettingScreen(
+                    onBackClick = { onNavigate("role_selection") },
+                    onSaved = { onNavigate("home") },
+                    context = context
+                )
+            }
+        }
+        
+        // Bottom Navigation Bar positioned at bottom
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+        ) {
+            BottomNavigationBar(
+                currentScreen = currentScreen,
+                onNavigate = onNavigate
+            )
+        }
+    }
+}
+
+@Composable
+fun TutorMainScreenWithNavigation(
+    currentScreen: String,
+    onNavigate: (String) -> Unit,
+    context: android.content.Context
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Main content area
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 80.dp) // Space for bottom navigation
+        ) {
+            when (currentScreen) {
+                "home" -> TutorDashboardScreen()
+                "browse" -> BrowseScreen()
+                "sessions" -> SessionsScreen()
+                "profile" -> TutorProfileSettingScreen(
                     onBackClick = { onNavigate("role_selection") },
                     onSaved = { onNavigate("home") },
                     context = context
