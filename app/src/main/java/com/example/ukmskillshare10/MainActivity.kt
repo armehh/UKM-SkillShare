@@ -77,7 +77,11 @@ fun AppContent() {
     when (currentScreen) {
         "login" -> LoginScreen(
             onLoginClick = { currentScreen = "welcome" },
-            onSignupClick = { }
+            onSignupClick = { currentScreen = "registration" }
+        )
+        "registration" -> RegistrationScreen(
+            onRegistrationSuccess = { currentScreen = "login" },
+            onBackToLogin = { currentScreen = "login" }
         )
         "welcome" -> WelcomeScreen(
             onGetStartedClick = { currentScreen = "role_selection" }

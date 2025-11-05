@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.widthIn
@@ -33,14 +34,41 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 @Composable
 fun LoginScreen(
     onLoginClick: () -> Unit,
     onSignupClick: () -> Unit = {}
 ) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
+    // Ensure Firebase is initialized
+    val firebaseApp = remember { 
+        try {
+            FirebaseApp.getInstance()
+        } catch (e: IllegalStateException) {
+            null
+        }
+    }
+
+    val auth = remember { 
+        if (firebaseApp != null) {
+            FirebaseAuth.getInstance(firebaseApp)
+        } else {
+            FirebaseAuth.getInstance()
+        }
+    }
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -77,22 +105,27 @@ fun LoginScreen(
                 )
 
                 OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text("Username") },
+                    value = email,
+                    onValueChange = { 
+                        email = it
+                        errorMessage = ""
+                    },
+                    label = { Text("Email") },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.Black)
                 )
 
-                var passwordVisible by remember { mutableStateOf(false) }
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { 
+                        password = it
+                        errorMessage = ""
+                    },
                     label = { Text("Password") },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -113,28 +146,76 @@ fun LoginScreen(
                     }
                 )
 
+                // Error message
+                if (errorMessage.isNotEmpty()) {
+                    Text(
+                        text = errorMessage,
+                        color = Color.Red,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    )
+                }
+
                 Button(
                     onClick = {
-                        if (username.isNotBlank() && password.isNotBlank()) {
-                            onLoginClick()
+                        if (email.isBlank() || password.isBlank()) {
+                            errorMessage = "Please enter email and password"
+                            return@Button
+                        }
+
+                        isLoading = true
+                        errorMessage = ""
+
+                        // Authenticate with Firebase
+                        coroutineScope.launch {
+                            try {
+                                withContext(Dispatchers.IO) {
+                                    auth.signInWithEmailAndPassword(email, password).await()
+                                }
+
+                                // Successful login
+                                isLoading = false
+                                onLoginClick()
+                            } catch (e: Exception) {
+                                isLoading = false
+                                errorMessage = when {
+                                    e.message?.contains("user-not-found") == true -> 
+                                        "No account found with this email"
+                                    e.message?.contains("wrong-password") == true -> 
+                                        "Incorrect password"
+                                    e.message?.contains("invalid-email") == true -> 
+                                        "Invalid email address"
+                                    e.message?.contains("user-disabled") == true -> 
+                                        "This account has been disabled"
+                                    e.message?.contains("network") == true -> 
+                                        "Network error. Please check your internet connection."
+                                    e.message?.contains("CONFIGURATION_NOT_FOUND") == true -> 
+                                        "Firebase Auth is not enabled. Please enable Authentication in Firebase Console."
+                                    else -> "Login failed: ${e.message ?: "Unknown error"}"
+                                }
+                            }
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
-                ,
+                        .padding(top = 16.dp),
+                    enabled = !isLoading,
                     colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF7047DE)
                     )
                 ) {
-                    Text(text = "LOGIN")
+                    Text(text = if (isLoading) "Logging in..." else "LOGIN")
                 }
 
                 Text(
-                    text = "Enter any username and password to login",
+                    text = "Don't have an account? Sign up",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 8.dp)
+                    color = Color(0xFF7047DE),
+                    modifier = Modifier
+                        .padding(top = 16.dp)
+                        .clickable { onSignupClick() }
                 )
             }
         }

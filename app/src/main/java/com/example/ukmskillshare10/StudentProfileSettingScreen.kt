@@ -26,6 +26,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.rememberCoroutineScope
 
 @Composable
 fun StudentProfileSettingScreen(
@@ -33,7 +40,13 @@ fun StudentProfileSettingScreen(
     onSaved: () -> Unit = {},
     context: android.content.Context
 ) {
-    // Local state management without database
+    // Firebase instances
+    val auth = remember { FirebaseAuth.getInstance() }
+    val db = remember { FirebaseFirestore.getInstance() }
+    val coroutineScope = rememberCoroutineScope()
+    val currentUser = auth.currentUser
+    
+    // Local state management
     var name by remember { mutableStateOf("") }
     var studentId by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -49,6 +62,46 @@ fun StudentProfileSettingScreen(
     var showContactHelpDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    
+    // Load profile data when screen opens
+    LaunchedEffect(currentUser?.uid) {
+        if (currentUser?.uid != null) {
+            isLoading = true
+            try {
+                val profileDoc = withContext(Dispatchers.IO) {
+                    db.collection("studentProfiles")
+                        .document(currentUser.uid)
+                        .get()
+                        .await()
+                }
+                
+                if (profileDoc.exists()) {
+                    val data = profileDoc.data
+                    name = data?.get("name") as? String ?: ""
+                    studentId = data?.get("studentId") as? String ?: ""
+                    email = data?.get("email") as? String ?: currentUser.email ?: ""
+                    phoneNumber = data?.get("phoneNumber") as? String ?: ""
+                    course = data?.get("course") as? String ?: ""
+                    faculty = data?.get("faculty") as? String ?: ""
+                    yearOfStudy = data?.get("yearOfStudy") as? String ?: ""
+                    notificationsEnabled = data?.get("notificationsEnabled") as? Boolean ?: false
+                    language = data?.get("language") as? String ?: "English"
+                    theme = data?.get("theme") as? String ?: "Light"
+                } else {
+                    // Initialize with user email if available
+                    email = currentUser.email ?: ""
+                }
+            } catch (e: Exception) {
+                errorMessage = "Failed to load profile: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        } else {
+            isLoading = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -284,25 +337,75 @@ fun StudentProfileSettingScreen(
             // Save Changes Button
             Button(
                 onClick = {
-                    // Simple save without database
-                    showSuccessDialog = true
-                    // Navigate to dashboard after short confirmation
-                    onSaved()
+                    if (currentUser?.uid == null) {
+                        errorMessage = "User not logged in"
+                        return@Button
+                    }
+                    
+                    coroutineScope.launch {
+                        try {
+                            isLoading = true
+                            errorMessage = null
+                            
+                            val profileData = hashMapOf(
+                                "userId" to currentUser.uid,
+                                "email" to email,
+                                "name" to name,
+                                "studentId" to studentId,
+                                "phoneNumber" to phoneNumber,
+                                "course" to course,
+                                "faculty" to faculty,
+                                "yearOfStudy" to yearOfStudy,
+                                "notificationsEnabled" to notificationsEnabled,
+                                "language" to language,
+                                "theme" to theme,
+                                "updatedAt" to com.google.firebase.Timestamp.now()
+                            )
+                            
+                            withContext(Dispatchers.IO) {
+                                db.collection("studentProfiles")
+                                    .document(currentUser.uid)
+                                    .set(profileData)
+                                    .await()
+                            }
+                            
+                            isLoading = false
+                            showSuccessDialog = true
+                            // Navigate to dashboard after short confirmation
+                            onSaved()
+                        } catch (e: Exception) {
+                            isLoading = false
+                            errorMessage = "Failed to save profile: ${e.message}"
+                        }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
                     .height(56.dp),
+                enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = "Save Changes",
+                    text = if (isLoading) "Saving..." else "Save Changes",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White
+                )
+            }
+            
+            // Error message
+            errorMessage?.let { error ->
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
                 )
             }
 
@@ -422,7 +525,7 @@ fun DropdownField(
         OutlinedTextField(
             readOnly = true,
             value = value,
-            onValueChange = {},
+            onValueChange = { _ -> },
             label = { Text(label) },
             placeholder = { Text("Select $label") },
             trailingIcon = {

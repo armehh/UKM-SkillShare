@@ -22,6 +22,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -30,7 +38,13 @@ fun TutorProfileSettingScreen(
     onSaved: () -> Unit,
     context: android.content.Context
 ) {
-    // Local state management without database
+    // Firebase instances
+    val auth = remember { FirebaseAuth.getInstance() }
+    val db = remember { FirebaseFirestore.getInstance() }
+    val coroutineScope = rememberCoroutineScope()
+    val currentUser = auth.currentUser
+    
+    // Local state management
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
@@ -39,8 +53,10 @@ fun TutorProfileSettingScreen(
     var allowNegotiable by remember { mutableStateOf(true) }
     
     var newSkill by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // availability simple toggles (dummy)
+    // availability simple toggles
     data class DayAvail(var enabled: Boolean, var slot: String)
     var availability by remember {
         mutableStateOf(
@@ -54,6 +70,51 @@ fun TutorProfileSettingScreen(
                 DayAvail(false, "Not Available")
             )
         )
+    }
+    
+    // Load profile data when screen opens
+    LaunchedEffect(currentUser?.uid) {
+        if (currentUser?.uid != null) {
+            isLoading = true
+            try {
+                val profileDoc = withContext(Dispatchers.IO) {
+                    db.collection("tutorProfiles")
+                        .document(currentUser.uid)
+                        .get()
+                        .await()
+                }
+                
+                if (profileDoc.exists()) {
+                    val data = profileDoc.data
+                    name = data?.get("name") as? String ?: ""
+                    email = data?.get("email") as? String ?: currentUser.email ?: ""
+                    phoneNumber = data?.get("phoneNumber") as? String ?: ""
+                    skills = (data?.get("skills") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+                    pricePerHour = data?.get("pricePerHour") as? String ?: ""
+                    allowNegotiable = data?.get("allowNegotiable") as? Boolean ?: true
+                    
+                    // Load availability
+                    val availabilityData = data?.get("availability") as? List<Map<String, Any>>
+                    if (availabilityData != null) {
+                        availability = availabilityData.mapIndexed { index, dayData ->
+                            DayAvail(
+                                enabled = dayData["enabled"] as? Boolean ?: false,
+                                slot = dayData["slot"] as? String ?: "Not Available"
+                            )
+                        }
+                    }
+                } else {
+                    // Initialize with user email if available
+                    email = currentUser.email ?: ""
+                }
+            } catch (e: Exception) {
+                errorMessage = "Failed to load profile: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        } else {
+            isLoading = false
+        }
     }
 
     Column(
@@ -225,18 +286,75 @@ fun TutorProfileSettingScreen(
         Spacer(Modifier.height(16.dp))
 
         Button(
-            onClick = { 
-                // Simple save without database
-                onSaved()
+            onClick = {
+                if (currentUser?.uid == null) {
+                    errorMessage = "User not logged in"
+                    return@Button
+                }
+                
+                coroutineScope.launch {
+                    try {
+                        isLoading = true
+                        errorMessage = null
+                        
+                        val availabilityData = availability.map { day ->
+                            mapOf(
+                                "enabled" to day.enabled,
+                                "slot" to day.slot
+                            )
+                        }
+                        
+                        val profileData = hashMapOf(
+                            "userId" to currentUser.uid,
+                            "email" to email,
+                            "name" to name,
+                            "phoneNumber" to phoneNumber,
+                            "skills" to skills,
+                            "pricePerHour" to pricePerHour,
+                            "allowNegotiable" to allowNegotiable,
+                            "availability" to availabilityData,
+                            "updatedAt" to com.google.firebase.Timestamp.now()
+                        )
+                        
+                        withContext(Dispatchers.IO) {
+                            db.collection("tutorProfiles")
+                                .document(currentUser.uid)
+                                .set(profileData)
+                                .await()
+                        }
+                        
+                        isLoading = false
+                        onSaved()
+                    } catch (e: Exception) {
+                        isLoading = false
+                        errorMessage = "Failed to save profile: ${e.message}"
+                    }
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .height(56.dp),
+            enabled = !isLoading,
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
             shape = RoundedCornerShape(12.dp)
         ) { 
-            Text("Save Changes", color = Color.White)
+            Text(
+                text = if (isLoading) "Saving..." else "Save Changes",
+                color = Color.White
+            )
+        }
+        
+        // Error message
+        errorMessage?.let { error ->
+            Text(
+                text = error,
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 8.dp)
+            )
         }
 
         Spacer(Modifier.height(24.dp))
