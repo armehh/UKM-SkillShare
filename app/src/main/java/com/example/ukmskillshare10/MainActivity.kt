@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -403,6 +404,16 @@ fun MainScreenWithNavigation(
     onNavigate: (String) -> Unit,
     context: android.content.Context
 ) {
+    // Maintain internal state for navigation within the dashboard
+    var internalCurrentScreen by remember { mutableStateOf("home") }
+    
+    // Update internal state when external currentScreen changes (e.g., initial load)
+    LaunchedEffect(currentScreen) {
+        if (currentScreen == "dashboard") {
+            internalCurrentScreen = "home"
+        }
+    }
+    
     Box(modifier = Modifier.fillMaxSize()) {
         // Main content area
         Column(
@@ -410,10 +421,10 @@ fun MainScreenWithNavigation(
                 .fillMaxSize()
                 .padding(bottom = 80.dp) // Space for bottom navigation
         ) {
-            when (currentScreen) {
+            when (internalCurrentScreen) {
                 "home" -> DashboardScreen(
-                    onBrowseClick = { onNavigate("browse") },
-                    onBookingsClick = { onNavigate("sessions") },
+                    onBrowseClick = { internalCurrentScreen = "browse" },
+                    onBookingsClick = { internalCurrentScreen = "sessions" },
                     onFeedbackClick = { /* TODO: Implement feedback */ },
                     onHistoryClick = { /* TODO: Implement history */ }
                 )
@@ -421,7 +432,7 @@ fun MainScreenWithNavigation(
                 "sessions" -> SessionsScreen()
                 "profile" -> StudentProfileSettingScreen(
                     onBackClick = { onNavigate("role_selection") },
-                    onSaved = { onNavigate("home") },
+                    onSaved = { internalCurrentScreen = "home" },
                     context = context
                 )
             }
@@ -434,8 +445,8 @@ fun MainScreenWithNavigation(
                 .fillMaxWidth()
         ) {
             BottomNavigationBar(
-                currentScreen = currentScreen,
-                onNavigate = onNavigate
+                currentScreen = internalCurrentScreen,
+                onNavigate = { screen -> internalCurrentScreen = screen }
             )
         }
     }
@@ -447,6 +458,16 @@ fun TutorMainScreenWithNavigation(
     onNavigate: (String) -> Unit,
     context: android.content.Context
 ) {
+    // Maintain internal state for navigation within the dashboard
+    var internalCurrentScreen by remember { mutableStateOf("home") }
+    
+    // Update internal state when external currentScreen changes (e.g., initial load)
+    LaunchedEffect(currentScreen) {
+        if (currentScreen == "tutor_dashboard") {
+            internalCurrentScreen = "home"
+        }
+    }
+    
     Box(modifier = Modifier.fillMaxSize()) {
         // Main content area
         Column(
@@ -454,13 +475,13 @@ fun TutorMainScreenWithNavigation(
                 .fillMaxSize()
                 .padding(bottom = 80.dp) // Space for bottom navigation
         ) {
-            when (currentScreen) {
+            when (internalCurrentScreen) {
                 "home" -> TutorDashboardScreen()
                 "browse" -> BrowseScreen()
                 "sessions" -> SessionsScreen()
                 "profile" -> TutorProfileSettingScreen(
                     onBackClick = { onNavigate("role_selection") },
-                    onSaved = { onNavigate("home") },
+                    onSaved = { internalCurrentScreen = "home" },
                     context = context
                 )
             }
@@ -473,8 +494,8 @@ fun TutorMainScreenWithNavigation(
                 .fillMaxWidth()
         ) {
             BottomNavigationBar(
-                currentScreen = currentScreen,
-                onNavigate = onNavigate
+                currentScreen = internalCurrentScreen,
+                onNavigate = { screen -> internalCurrentScreen = screen }
             )
         }
     }

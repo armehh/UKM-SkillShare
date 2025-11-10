@@ -90,7 +90,7 @@ fun DashboardScreen(
                         .border(1.dp, Color(0xFFBDC6F3), RoundedCornerShape(36.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "750", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E3A74))
+                    Text(text = "0", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E3A74))
                 }
             }
         }
@@ -99,27 +99,8 @@ fun DashboardScreen(
 
         Text("Upcoming Sessions", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E3A74))
 
-        Spacer(modifier = Modifier.height(8.dp))
 
-        SessionCard(
-            title = "Java Programming",
-            subtitle = "with Ts. Shahrina Shahrani",
-            timeLabel = "Today",
-            time = "2:00 PM",
-            location = "MP1, FTSM"
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        SessionCard(
-            title = "Artificial Intelligence",
-            subtitle = "with Assoc. Prof. Ts. Dr. Abdul Hadi",
-            timeLabel = "Tomorrow",
-            time = "10:30 AM",
-            location = "BK3, FTSM"
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(300.dp))
 
         Text("Quick Access", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2E3A74))
 
